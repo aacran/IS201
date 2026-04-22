@@ -68,6 +68,10 @@ ol {
 .mainbody {
     max-width: 900px;
     margin: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 nav {
     background-color: lightgray;
