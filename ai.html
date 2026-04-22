@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Memory Match Game</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    color: white;
+    text-align: center;
+}
+
+/* HEADER BAR */
+header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 60px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+/* TOP RIGHT BUTTON */
+.home-btn {
+    position: absolute;
+    right: 15px;
+    background: cyan;
+    color: black;
+    padding: 8px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.home-btn:hover {
+    background: white;
+    transform: scale(1.05);
+}
+
+/* INSTRUCTIONS */
+.instructions {
+    margin-top: 80px;
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+/* HUD */
+.hud {
+    margin: 10px;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+}
+
+/* BUTTON */
+button {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 8px;
+    background: cyan;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* BOARD */
+.board {
+    width: 420px;
+    margin: 20px auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+/* CARDS */
+.card {
+    width: 90px;
+    height: 90px;
+    background: #334155;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 28px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.card:hover {
+    transform: scale(1.05);
+}
+
+.flipped {
+    background: cyan;
+    color: black;
+}
+
+.matched {
+    background: limegreen;
+    pointer-events: none;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    🧠 Memory Match Game
+
+    <!-- TOP RIGHT HOME BUTTON -->
+    <a href="fromScratch.html" class="home-btn">← Scratch Page</a>
+</header>
+
+<div class="instructions">
+Match all pairs. Click two cards at a time. If they match, they stay. If not, they flip back.
+</div>
+
+<div class="hud">
+<div>Moves: <span id="moves">0</span></div>
+<div>Time: <span id="time">0</span>s</div>
+<button onclick="restart()">Restart</button>
+</div>
+
+<div class="board" id="board"></div>
+
+<script>
+const board = document.getElementById("board");
+const movesEl = document.getElementById("moves");
+const timeEl = document.getElementById("time");
+
+let symbols = ["🍎","🍌","🍇","🍓","🍒","🍉","🍍","🥝"];
+let cards = [...symbols, ...symbols];
+
+let first = null;
+let second = null;
+let lock = false;
+let moves = 0;
+let matches = 0;
+let time = 0;
+let started = false;
+let timer;
+
+function shuffle(arr){
+    for(let i=arr.length-1;i>0;i--){
+        let j=Math.floor(Math.random()*(i+1));
+        [arr[i],arr[j]]=[arr[j],arr[i]];
+    }
+}
+
+function startTimer(){
+    timer = setInterval(()=>{
+        time++;
+        timeEl.textContent = time;
+    },1000);
+}
+
+function createBoard(){
+    board.innerHTML="";
+    shuffle(cards);
+
+    cards.forEach(symbol=>{
+        let card=document.createElement("div");
+        card.classList.add("card");
+        card.dataset.value=symbol;
+
+        card.addEventListener("click",()=>flip(card));
+        board.appendChild(card);
+    });
+}
+
+function flip(card){
+    if(lock || card.classList.contains("flipped") || card.classList.contains("matched")) return;
+
+    if(!started){
+        startTimer();
+        started=true;
+    }
+
+    card.classList.add("flipped");
+    card.textContent = card.dataset.value;
+
+    if(!first){
+        first=card;
+        return;
+    }
+
+    second=card;
+    moves++;
+    movesEl.textContent=moves;
+
+    checkMatch();
+}
+
+function checkMatch(){
+    if(first.dataset.value===second.dataset.value){
+        first.classList.add("matched");
+        second.classList.add("matched");
+        matches++;
+        resetTurn();
+
+    } else {
+        lock=true;
+        setTimeout(()=>{
+            first.classList.remove("flipped");
+            second.classList.remove("flipped");
+            first.textContent="";
+            second.textContent="";
+            resetTurn();
+        },600);
+    }
+}
+
+function resetTurn(){
+    first=null;
+    second=null;
+    lock=false;
+}
+
+function restart(){
+    clearInterval(timer);
+    time=0;
+    moves=0;
+    matches=0;
+    started=false;
+
+    timeEl.textContent=0;
+    movesEl.textContent=0;
+
+    createBoard();
+}
+
+createBoard();
+</script>
+
+</body>
+</html>
